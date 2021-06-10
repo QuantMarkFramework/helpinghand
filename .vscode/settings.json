@@ -6,11 +6,6 @@
 	],
 	"files.eol": "\n",
 	"git.autofetch": true,
-	"[python]": {
-		"editor.codeActionsOnSave": {
-			"source.organizeImports": true
-		}
-	},
 	"python.testing.unittestArgs": [
 		"-v",
 		"-s",

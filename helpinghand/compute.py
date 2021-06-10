@@ -2,7 +2,11 @@ import typing
 
 import tequila as tq
 from tequila import QCircuit, QubitHamiltonian
-from tequila.objective.objective import Variable, VectorObjective
+from tequila.objective.objective import (
+	Variable,
+	VectorObjective,
+	assign_variable
+)
 from tequila.optimizers.optimizer_base import Optimizer, OptimizerResults
 
 
@@ -18,6 +22,10 @@ def compute(
 	initial_values: typing.Union[int, typing.Dict[Variable, float]] = None
 ) -> OptimizerResults:
 	objective: VectorObjective = tq.ExpectationValue(H=hamiltonian, U=circuit)
+	if isinstance(initial_values, int) or isinstance(initial_values, float):
+		initial_values = {assign_variable(k): initial_values for k in objective.extract_variables()}
+	else:
+		initial_values = {assign_variable(k): float(v) for k, v in initial_values.items()}
 	result: OptimizerResults = optimizer(
 		objective=objective,
 		initial_values=initial_values

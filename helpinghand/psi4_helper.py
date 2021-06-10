@@ -1,12 +1,11 @@
 import typing
-from collections.abc import Callable
 
 from tequila import QubitHamiltonian
 from tequila.quantumchemistry.psi4_interface import QuantumChemistryPsi4
 
 
 def molecus_for_working_psi4_distances(
-	molecule_creator: Callable[[float], QuantumChemistryPsi4],
+	molecule_creator: typing.Callable[[float], QuantumChemistryPsi4],
 	distances: typing.List[float]
 ) -> typing.Tuple[
 	typing.List[QubitHamiltonian],
@@ -38,7 +37,7 @@ def molecus_for_working_psi4_distances(
 					hamiltonians.append(molecule.make_hamiltonian())
 					approximated = True
 				except SystemError:
-					print(f'Failed at R={new_R}')
+					print(f'Failed at distance {new_R}')
 					i += 1
 			if not approximated:
 				print(f'Gave up on distance {distance} :(')
