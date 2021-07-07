@@ -5,10 +5,7 @@ from tequila.hamiltonian.qubit_hamiltonian import QubitHamiltonian
 from tequila.objective.objective import VectorObjective
 from tequila.optimizers.optimizer_base import Optimizer, OptimizerResults
 from tequila.quantumchemistry import QuantumChemistryBase
-from collections.abc import Callable
 from tequila.objective.objective import Variable, assign_variable
-
-CircuitCreator = Callable[[QuantumChemistryBase], QCircuit]
 
 
 def get_max_from_result(result: OptimizerResults) -> typing.List[float]:
@@ -17,7 +14,7 @@ def get_max_from_result(result: OptimizerResults) -> typing.List[float]:
 
 def get_max_from_VQE(
 	molecule: QuantumChemistryBase,
-	circuit_creator: CircuitCreator,
+	circuit_creator: typing.Callable[[QuantumChemistryBase], QCircuit],
 	optimizer: Optimizer,
 	initial_values: typing.Union[int, typing.Dict[Variable, float]] = None
 ) -> typing.Tuple[typing.List[float], int, float]:
