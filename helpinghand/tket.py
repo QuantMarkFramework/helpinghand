@@ -1,6 +1,8 @@
 import tequila as tq
 from tequila.circuit import gates
 import helpinghand.convenience_gates as congates
+from tequila.objective.objective import FixedVariable, Objective, Variable
+import numpy as np
 
 HAS_PYTKET = True
 try:
@@ -72,16 +74,24 @@ def to_tket(circuit: tq.QCircuit) -> Circuit:
 				f'Converting gate {gate.name} with {n_control} controls is not supported.'
 			)
 		if gate.is_parametrized():
-			vars = gate.extract_variables()
-			if not len(vars) == 1:
-				raise ConvertToTKETError(
-					"Only converting single or no parameter gates is supported."
-				)
-			try:
-				parameter = variable_map[vars[0].name]
-			except KeyError:
-				parameter = fresh_symbol(vars[0].name)
-				variable_map[vars[0].name] = parameter
+			variable = gate.parameter
+			if isinstance(variable, FixedVariable):
+				parameter = float(variable) / np.pi
+			elif isinstance(variable, Variable):
+				try:
+					parameter = variable_map[variable.name]
+				except KeyError:
+					parameter = fresh_symbol(variable.name)
+					variable_map[variable.name] = parameter
+			elif isinstance(variable, Objective):  # CircuitAnalyser + make_upccgsd_ansatz ?
+				variable = variable.extract_variables()[0]
+				try:
+					parameter = variable_map[str(variable.name)]
+				except KeyError:
+					parameter = fresh_symbol(str(variable.name))
+					variable_map[str(variable.name)] = parameter
+			else:
+				raise ConvertToTKETError("I have no idea anymore about what is going on...")
 			gate_function[n_control](circ)(parameter, *gate.control, *gate.target)
 		else:
 			gate_function[n_control](circ)(*gate.control, *gate.target)
@@ -103,7 +113,9 @@ def from_tket(circuit: Circuit) -> tq.QCircuit:
 				"Only converting single or no parameter gates is supported."
 			)
 		arguments = [arg.index[0] for arg in gate.args]
-		if parameters:
+		if parameters and isinstance(parameters[0], float):
+			q_gate = gate_function(parameters[0] * np.pi, target=arguments[-1], control=arguments[:-1])
+		elif parameters:
 			q_gate = gate_function(parameters[0].name, target=arguments[-1], control=arguments[:-1])
 		else:
 			q_gate = gate_function(target=arguments[-1], control=arguments[:-1])

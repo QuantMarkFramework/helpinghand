@@ -3,6 +3,11 @@ import typing
 import tequila as tq
 from tequila.circuit.compiler import Compiler
 
+try:
+	from pytket.routing import Architecture
+except ImportError:
+	pass
+
 
 DEFAULT_COMPILER_ARGUMENTS = {
 	"multitarget": True,
@@ -32,7 +37,8 @@ class CircuitAnalyser:
 	def __init__(
 		self,
 		compiler_arguments: typing.Dict[str, bool] = None,
-		compiler: Compiler = None
+		compiler: Compiler = None,
+		architecture: Architecture = None
 	):
 		if compiler_arguments is not None and compiler is not None:
 			raise ValueError("Give compiler_arguments or compiler, not both.")
@@ -42,10 +48,13 @@ class CircuitAnalyser:
 			self.compiler: Compiler = Compiler(**compiler_arguments)
 		else:
 			self.compiler: Compiler = Compiler(**DEFAULT_COMPILER_ARGUMENTS)
+		self.architecture = architecture
 
-	def __call__(self, circuit: tq.QCircuit) -> CircuitAnalytics:
-		return CircuitAnalytics(circuit, self.compiler)
+	def __call__(self, circuit: tq.QCircuit, architecture: Architecture = None) -> CircuitAnalytics:
+		arc = architecture if architecture else self.architecture
+		return CircuitAnalytics(circuit, self.compiler, arc)
 
-	def info(self, circuit: tq.QCircuit) -> None:
+	def info(self, circuit: tq.QCircuit, architecture: Architecture = None) -> None:
 		"""Prints information about the circuit."""
-		CircuitAnalytics(circuit, self.compiler).info()
+		arc = architecture if architecture else self.architecture
+		CircuitAnalytics(circuit, self.compiler, arc).info()
