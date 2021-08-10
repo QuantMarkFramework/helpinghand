@@ -1,4 +1,5 @@
 from helpinghand.analyse.CircuitAnalytics import CircuitAnalytics
+from helpinghand.architectures import select_architecture
 import typing
 import tequila as tq
 from tequila.circuit.compiler import Compiler
@@ -38,7 +39,8 @@ class CircuitAnalyser:
 		self,
 		compiler_arguments: typing.Dict[str, bool] = None,
 		compiler: Compiler = None,
-		architecture: Architecture = None
+		architecture: Architecture = None,
+		qubits: int = None
 	):
 		if compiler_arguments is not None and compiler is not None:
 			raise ValueError("Give compiler_arguments or compiler, not both.")
@@ -48,13 +50,27 @@ class CircuitAnalyser:
 			self.compiler: Compiler = Compiler(**compiler_arguments)
 		else:
 			self.compiler: Compiler = Compiler(**DEFAULT_COMPILER_ARGUMENTS)
+		if isinstance(architecture, str):
+			architecture = select_architecture(architecture, qubits)
 		self.architecture = architecture
 
-	def __call__(self, circuit: tq.QCircuit, architecture: Architecture = None) -> CircuitAnalytics:
+	def __call__(
+		self,
+		circuit: tq.QCircuit,
+		architecture: typing.Union[Architecture, str] = None
+	) -> CircuitAnalytics:
+		if isinstance(architecture, str):
+			architecture = select_architecture(architecture, circuit.n_qubits)
 		arc = architecture if architecture else self.architecture
 		return CircuitAnalytics(circuit, self.compiler, arc)
 
-	def info(self, circuit: tq.QCircuit, architecture: Architecture = None) -> None:
+	def info(
+		self,
+		circuit: tq.QCircuit,
+		architecture: typing.Union[Architecture, str] = None
+	) -> None:
+		if isinstance(architecture, str):
+			architecture = select_architecture(architecture, circuit.n_qubits)
 		"""Prints information about the circuit."""
 		arc = architecture if architecture else self.architecture
 		CircuitAnalytics(circuit, self.compiler, arc).info()

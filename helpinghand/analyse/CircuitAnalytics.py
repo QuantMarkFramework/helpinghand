@@ -1,3 +1,4 @@
+from helpinghand.architectures import select_architecture
 import typing
 import tequila as tq
 from tequila.circuit.compiler import Compiler
@@ -19,7 +20,7 @@ class CircuitAnalytics:
 		self,
 		circuit: tq.QCircuit,
 		compiler: Compiler,
-		architecture: Architecture = None
+		architecture: typing.Union[Architecture, str] = None,
 	):
 		self.abstract_circuit: tq.QCircuit = circuit
 
@@ -29,6 +30,8 @@ class CircuitAnalytics:
 					"Pytket needs to be installed to use architecture when analysing circuits."
 				)
 			tket_circuit = to_tket(compiler(circuit))
+			if isinstance(architecture, str):
+				architecture = select_architecture(architecture, circuit.n_qubits)
 			mapper = DefaultMappingPass(architecture)
 			decomposer = DecomposeSwapsToCXs(architecture)
 			cu = CompilationUnit(tket_circuit)
